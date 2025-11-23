@@ -1,11 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from modules.repo_fetcher import RepoFetcher
+from modules.dependency_analyzer import DependencyAnalyzer
 
 app = FastAPI(title="DeadRepo Doctor API")
 
-# Initialize repo fetcher
+# Initialize modules
 repo_fetcher = RepoFetcher()
+dependency_analyzer = DependencyAnalyzer()
 
 class DiagnoseRequest(BaseModel):
     repo_url: str
@@ -14,6 +16,9 @@ class FetchRequest(BaseModel):
     repo_url: str
 
 class FetchResponse(BaseModel):
+    local_path: str
+
+class AnalyzeRequest(BaseModel):
     local_path: str
 
 @app.get("/")
@@ -32,6 +37,19 @@ def fetch_repository(request: FetchRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch repository: {str(e)}")
+
+@app.post("/api/analyze")
+def analyze_dependencies(request: AnalyzeRequest):
+    """
+    Analyze dependencies in a local repository.
+    """
+    try:
+        report = dependency_analyzer.analyze(request.local_path)
+        return {"analysis_report": report}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to analyze dependencies: {str(e)}")
 
 @app.post("/api/diagnose")
 def diagnose(request: DiagnoseRequest):
