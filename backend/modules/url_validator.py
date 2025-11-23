@@ -1,69 +1,22 @@
-"""URL validation for GitHub repository URLs."""
-
-import re
 from urllib.parse import urlparse
 
 
 class URLValidator:
-    """Validates GitHub repository URLs."""
-    
-    GITHUB_PATTERNS = [
-        r'^https?://github\.com/[\w\-]+/[\w\-\.]+/?$',
-        r'^git@github\.com:[\w\-]+/[\w\-\.]+\.git$',
-    ]
-    
-    @staticmethod
-    def is_valid_github_url(url: str) -> bool:
+    def validate(self, url: str) -> str:
         """
-        Validate if the URL is a valid GitHub repository URL.
-        
-        Args:
-            url: The URL to validate
-            
-        Returns:
-            True if valid GitHub URL, False otherwise
+        Validates that the URL is a valid GitHub HTTPS URL.
+        Returns the cleaned URL if valid, otherwise raises ValueError.
         """
         if not url or not isinstance(url, str):
-            return False
-        
-        url = url.strip()
-        
-        # Check against patterns
-        for pattern in URLValidator.GITHUB_PATTERNS:
-            if re.match(pattern, url):
-                return True
-        
-        # Also accept URLs with .git suffix
-        if url.endswith('.git'):
-            url_without_git = url[:-4]
-            for pattern in URLValidator.GITHUB_PATTERNS:
-                if re.match(pattern, url_without_git):
-                    return True
-        
-        return False
-    
-    @staticmethod
-    def normalize_url(url: str) -> str:
-        """
-        Normalize GitHub URL to HTTPS format.
-        
-        Args:
-            url: The URL to normalize
-            
-        Returns:
-            Normalized HTTPS URL
-        """
-        url = url.strip()
-        
-        # Convert SSH to HTTPS
-        if url.startswith('git@github.com:'):
-            url = url.replace('git@github.com:', 'https://github.com/')
-        
-        # Remove .git suffix if present
-        if url.endswith('.git'):
-            url = url[:-4]
-        
-        # Remove trailing slash
-        url = url.rstrip('/')
-        
-        return url
+            raise ValueError("URL must be a non-empty string")
+
+        parsed = urlparse(url)
+
+        if parsed.scheme not in ["http", "https"]:
+            raise ValueError("Only HTTP/HTTPS GitHub URLs are supported")
+
+        if "github.com" not in parsed.netloc:
+            raise ValueError("URL must point to github.com")
+
+        # Remove trailing slashes
+        return url.rstrip("/")
