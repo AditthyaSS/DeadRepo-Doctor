@@ -1,0 +1,53 @@
+spec_name: Core Diagnosis Engine
+version: 1.0
+description: >
+  The Core Diagnosis Engine analyzes a GitHub repository and determines its "health status."
+  It evaluates outdated dependencies, deprecated syntax, missing documentation/tests,
+  and security vulnerabilities. It returns a structured diagnosis report.
+
+inputs:
+  - name: repo_url
+    type: string
+    required: true
+    description: GitHub repository URL to analyze.
+
+outputs:
+  - name: diagnosis_report
+    type: object
+    description: Structured JSON report with categorized findings.
+
+components:
+  - name: RepoFetcher
+    description: Fetches and clones the repository locally using the GitHub URL.
+
+  - name: DependencyAnalyzer
+    description: Identifies outdated or deprecated dependencies based on package files.
+
+  - name: CodeQualityAnalyzer
+    description: Detects deprecated syntax, code smells, and static analysis issues.
+
+  - name: DocumentationChecker
+    description: Checks for missing README, comments, and docstrings.
+
+  - name: TestCoverageChecker
+    description: Detects presence or absence of test suites.
+
+  - name: SecurityScanner
+    description: Scans for known vulnerabilities in dependencies.
+
+  - name: ReportGenerator
+    description: Compiles the results into a structured diagnosis JSON object.
+
+api_endpoints:
+  - method: POST
+    route: /api/diagnose
+    request_body:
+      repo_url: string
+    response_body:
+      diagnosis_report: object
+
+acceptance_criteria:
+  - The system must accept a valid GitHub URL.
+  - The system must perform all analysis steps without crashing.
+  - The system must return a JSON diagnosis report with at least 6 analysis categories.
+  - The entire flow should complete within a reasonable time (< 60 seconds).
